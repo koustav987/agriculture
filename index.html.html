@@ -1,0 +1,999 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Advanced Herbicide Calculator & Management System</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        .header {
+            text-align: center;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+        }
+        
+        .header h1 {
+            font-size: 2.5em;
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 10px;
+        }
+        
+        .tabs {
+            display: flex;
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 15px;
+            margin-bottom: 20px;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        }
+        
+        .tab {
+            flex: 1;
+            padding: 15px 20px;
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            color: #666;
+        }
+        
+        .tab.active {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            transform: translateY(-2px);
+        }
+        
+        .tab-content {
+            display: none;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+        }
+        
+        .tab-content.active {
+            display: block;
+            animation: fadeIn 0.5s ease;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .calculator-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+        
+        .formula-card {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            border-radius: 15px;
+            padding: 25px;
+            color: white;
+            box-shadow: 0 15px 35px rgba(240, 147, 251, 0.3);
+            transition: transform 0.3s ease;
+        }
+        
+        .formula-card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .formula-card h3 {
+            margin-bottom: 15px;
+            font-size: 1.3em;
+        }
+        
+        .formula {
+            background: rgba(255, 255, 255, 0.2);
+            padding: 15px;
+            border-radius: 10px;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            line-height: 1.5;
+            margin-bottom: 15px;
+        }
+        
+        .input-group {
+            margin-bottom: 20px;
+        }
+        
+        .input-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #333;
+        }
+        
+        .input-group input, .input-group select {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            background: rgba(255, 255, 255, 0.9);
+        }
+        
+        .input-group input:focus, .input-group select:focus {
+            border-color: #667eea;
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+        
+        .btn {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 15px 30px rgba(102, 126, 234, 0.4);
+        }
+        
+        .result {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 15px;
+            margin-top: 20px;
+            font-size: 18px;
+            font-weight: 600;
+            text-align: center;
+            box-shadow: 0 15px 35px rgba(79, 172, 254, 0.3);
+        }
+        
+        .herbicide-card {
+            background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease;
+        }
+        
+        .herbicide-card:hover {
+            transform: translateY(-3px);
+        }
+        
+        .herbicide-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+        }
+        
+        .site-action {
+            background: rgba(255, 255, 255, 0.8);
+            padding: 10px 15px;
+            border-radius: 8px;
+            margin-top: 10px;
+            font-size: 14px;
+            border-left: 4px solid #667eea;
+        }
+        
+        .crop-selector {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+        
+        .crop-btn {
+            background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%);
+            border: none;
+            padding: 15px;
+            border-radius: 10px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 15px rgba(252, 182, 159, 0.3);
+        }
+        
+        .crop-btn:hover, .crop-btn.active {
+            background: linear-gradient(135deg, #fcb69f 0%, #ffecd2 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(252, 182, 159, 0.4);
+        }
+        
+        .analytics-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-top: 30px;
+        }
+        
+        .chart-container {
+            background: rgba(255, 255, 255, 0.9);
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+        }
+        
+        @media (max-width: 768px) {
+            .calculator-grid, .analytics-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .tabs {
+                flex-direction: column;
+            }
+            
+            .header h1 {
+                font-size: 2em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🌾 Advanced Herbicide Calculator & Management System</h1>
+            <p>Precision agriculture tool for optimal herbicide application and crop protection</p>
+        </div>
+        
+        <div class="tabs">
+            <button class="tab active" onclick="showTab('calculator')">Calculator</button>
+            <button class="tab" onclick="showTab('recommendations')">Crop Recommendations</button>
+            <button class="tab" onclick="showTab('database')">Herbicide Database</button>
+            <button class="tab" onclick="showTab('analytics')">Analytics</button>
+        </div>
+        
+        <!-- Calculator Tab -->
+        <div id="calculator" class="tab-content active">
+            <div class="calculator-grid">
+                <div class="formula-card">
+                    <h3>📊 Amount of Herbicide (kg/ha)</h3>
+                    <div class="formula">
+                        Amount = (Rate of application × 100) / Active ingredient %
+                    </div>
+                    <div class="input-group">
+                        <label>Rate of Application (kg a.i./ha):</label>
+                        <input type="number" id="rateApplication" step="0.01" placeholder="e.g., 2.5">
+                    </div>
+                    <div class="input-group">
+                        <label>Active Ingredient (%):</label>
+                        <input type="number" id="activeIngredient" step="0.1" placeholder="e.g., 75">
+                    </div>
+                    <button class="btn" onclick="calculateHerbicideAmount()">Calculate Amount</button>
+                    <div id="herbicideResult" class="result" style="display: none;"></div>
+                </div>
+                
+                <div class="formula-card">
+                    <h3>🎯 Spray Coverage Area (m²)</h3>
+                    <div class="formula">
+                        Area = (Volume of spray applied × 10,000) / Recommended spray volume
+                    </div>
+                    <div class="input-group">
+                        <label>Volume of Spray Applied (L):</label>
+                        <input type="number" id="sprayVolume" step="0.1" placeholder="e.g., 200">
+                    </div>
+                    <div class="input-group">
+                        <label>Recommended Spray Volume (L/ha):</label>
+                        <input type="number" id="recommendedVolume" step="1" placeholder="e.g., 500">
+                    </div>
+                    <button class="btn" onclick="calculateSprayArea()">Calculate Area</button>
+                    <div id="areaResult" class="result" style="display: none;"></div>
+                </div>
+                
+                <div class="formula-card">
+                    <h3>🎒 Knapsac Sprayer Count</h3>
+                    <div class="formula">
+                        Count = Recommended spray volume / Knapsac tank capacity
+                    </div>
+                    <div class="input-group">
+                        <label>Recommended Spray Volume (L/ha):</label>
+                        <input type="number" id="recSprayVol" step="1" placeholder="e.g., 500">
+                    </div>
+                    <div class="input-group">
+                        <label>Knapsac Tank Capacity (L):</label>
+                        <input type="number" id="tankCapacity" step="1" placeholder="e.g., 16">
+                    </div>
+                    <button class="btn" onclick="calculateKnapsacCount()">Calculate Count</button>
+                    <div id="knapsacResult" class="result" style="display: none;"></div>
+                </div>
+                
+                <div class="formula-card">
+                    <h3>⚖️ Herbicide per Knapsac (g)</h3>
+                    <div class="formula">
+                        Amount = (Herbicide amount × 1000) / Number of knapsac sprayers
+                    </div>
+                    <div class="input-group">
+                        <label>Herbicide Amount (kg/ha):</label>
+                        <input type="number" id="herbAmountKg" step="0.01" placeholder="e.g., 3.33">
+                    </div>
+                    <div class="input-group">
+                        <label>Number of Knapsac Sprayers:</label>
+                        <input type="number" id="numKnapsac" step="1" placeholder="e.g., 31">
+                    </div>
+                    <button class="btn" onclick="calculateKnapsacHerbicide()">Calculate Amount</button>
+                    <div id="knapsacHerbResult" class="result" style="display: none;"></div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Recommendations Tab -->
+        <div id="recommendations" class="tab-content">
+            <h2>🌱 Crop-Specific Herbicide Recommendations</h2>
+            <div class="crop-selector">
+                <button class="crop-btn active" onclick="showCropRecommendations('rice')">Rice</button>
+                <button class="crop-btn" onclick="showCropRecommendations('wheat')">Wheat</button>
+                <button class="crop-btn" onclick="showCropRecommendations('maize')">Maize</button>
+                <button class="crop-btn" onclick="showCropRecommendations('cotton')">Cotton</button>
+                <button class="crop-btn" onclick="showCropRecommendations('sugarcane')">Sugarcane</button>
+                <button class="crop-btn" onclick="showCropRecommendations('soybean')">Soybean</button>
+                <button class="crop-btn" onclick="showCropRecommendations('greengram')">Green Gram</button>
+                <button class="crop-btn" onclick="showCropRecommendations('blackgram')">Black Gram</button>
+                <button class="crop-btn" onclick="showCropRecommendations('redgram')">Red Gram</button>
+                <button class="crop-btn" onclick="showCropRecommendations('chickpea')">Chickpea</button>
+                <button class="crop-btn" onclick="showCropRecommendations('lentil')">Lentil</button>
+                <button class="crop-btn" onclick="showCropRecommendations('fieldpea')">Field Pea</button>
+            </div>
+            <div id="cropRecommendations"></div>
+        </div>
+        
+        <!-- Database Tab -->
+        <div id="database" class="tab-content">
+            <h2>🗄️ Herbicide Database & Site of Action</h2>
+            <div id="herbicideDatabase"></div>
+        </div>
+        
+        <!-- Analytics Tab -->
+        <div id="analytics" class="tab-content">
+            <h2>📈 Usage Analytics & Resistance Management</h2>
+            <div class="analytics-grid">
+                <div class="chart-container">
+                    <h3>Herbicide Mode of Action Distribution</h3>
+                    <canvas id="moaChart"></canvas>
+                </div>
+                <div class="chart-container">
+                    <h3>Resistance Risk Assessment</h3>
+                    <canvas id="resistanceChart"></canvas>
+                </div>
+            </div>
+            <div class="chart-container" style="margin-top: 20px;">
+                <h3>Application Rate Optimization</h3>
+                <canvas id="optimizationChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Herbicide database with site of action information
+        const herbicideDatabase = {
+            'Glyphosate': {
+                siteOfAction: 'EPSPS enzyme inhibition (Group 9)',
+                mechanism: 'Inhibits 5-enolpyruvylshikimate-3-phosphate synthase, blocking aromatic amino acid synthesis',
+                crops: ['Maize', 'Soybean', 'Cotton', 'Sugarcane', 'Green Gram', 'Black Gram'],
+                rate: '1.5-3.0 kg/ha',
+                resistance: 'High',
+                timing: 'Post-emergence'
+            },
+            '2,4-D': {
+                siteOfAction: 'Auxin mimic (Group 4)',
+                mechanism: 'Synthetic auxin causing uncontrolled growth and plant death',
+                crops: ['Wheat', 'Maize', 'Rice'],
+                rate: '0.5-1.5 kg/ha',
+                resistance: 'Medium',
+                timing: 'Post-emergence'
+            },
+            'Atrazine': {
+                siteOfAction: 'Photosystem II inhibition (Group 5)',
+                mechanism: 'Blocks electron transport in photosystem II, preventing photosynthesis',
+                crops: ['Maize', 'Sugarcane'],
+                rate: '1.0-2.5 kg/ha',
+                resistance: 'High',
+                timing: 'Pre/Post-emergence'
+            },
+            'Pendimethalin': {
+                siteOfAction: 'Cell division inhibition (Group 3)',
+                mechanism: 'Inhibits microtubule assembly, preventing cell division',
+                crops: ['Rice', 'Wheat', 'Cotton', 'Soybean', 'Green Gram', 'Black Gram', 'Red Gram', 'Chickpea', 'Lentil'],
+                rate: '0.75-1.5 kg/ha',
+                resistance: 'Low',
+                timing: 'Pre-emergence'
+            },
+            'Paraquat': {
+                siteOfAction: 'Photosystem I inhibition (Group 22)',
+                mechanism: 'Generates reactive oxygen species, causing rapid cell membrane damage',
+                crops: ['Cotton', 'Maize', 'Soybean', 'Green Gram', 'Black Gram'],
+                rate: '0.6-1.2 kg/ha',
+                resistance: 'Medium',
+                timing: 'Post-emergence'
+            },
+            'Butachlor': {
+                siteOfAction: 'Fatty acid synthesis inhibition (Group 15)',
+                mechanism: 'Inhibits acetyl-CoA carboxylase, blocking fatty acid synthesis',
+                crops: ['Rice'],
+                rate: '1.0-2.0 kg/ha',
+                resistance: 'Low',
+                timing: 'Pre-emergence'
+            },
+            'Imazethapyr': {
+                siteOfAction: 'ALS enzyme inhibition (Group 2)',
+                mechanism: 'Inhibits acetolactate synthase, blocking branched-chain amino acid synthesis',
+                crops: ['Green Gram', 'Black Gram', 'Red Gram', 'Soybean', 'Chickpea'],
+                rate: '0.075-0.1 kg/ha',
+                resistance: 'Medium',
+                timing: 'Post-emergence'
+            },
+            'Quizalofop-ethyl': {
+                siteOfAction: 'ACCase inhibition (Group 1)',
+                mechanism: 'Inhibits acetyl-CoA carboxylase, blocking fatty acid synthesis in grasses',
+                crops: ['Green Gram', 'Black Gram', 'Red Gram', 'Chickpea', 'Lentil', 'Soybean'],
+                rate: '0.05-0.075 kg/ha',
+                resistance: 'Medium',
+                timing: 'Post-emergence'
+            },
+            'Chlorimuron-ethyl': {
+                siteOfAction: 'ALS enzyme inhibition (Group 2)',
+                mechanism: 'Inhibits acetolactate synthase, selective for broadleaf weeds',
+                crops: ['Green Gram', 'Black Gram', 'Red Gram'],
+                rate: '0.009-0.012 kg/ha',
+                resistance: 'Medium',
+                timing: 'Post-emergence'
+            },
+            'Fluazifop-p-butyl': {
+                siteOfAction: 'ACCase inhibition (Group 1)',
+                mechanism: 'Inhibits acetyl-CoA carboxylase in grasses, systemic grass killer',
+                crops: ['Green Gram', 'Black Gram', 'Red Gram', 'Chickpea', 'Lentil'],
+                rate: '0.15-0.25 kg/ha',
+                resistance: 'Medium',
+                timing: 'Post-emergence'
+            },
+            'Metribuzin': {
+                siteOfAction: 'Photosystem II inhibition (Group 5)',
+                mechanism: 'Blocks electron transport at QB site of photosystem II',
+                crops: ['Chickpea', 'Lentil'],
+                rate: '0.35-0.5 kg/ha',
+                resistance: 'Medium',
+                timing: 'Pre-emergence'
+            },
+            'Oxyfluorfen': {
+                siteOfAction: 'PPO inhibition (Group 14)',
+                mechanism: 'Inhibits protoporphyrinogen oxidase, causing membrane damage',
+                crops: ['Green Gram', 'Black Gram', 'Red Gram'],
+                rate: '0.15-0.25 kg/ha',
+                resistance: 'Low',
+                timing: 'Pre-emergence'
+            }
+        };
+
+        // Crop-specific recommendations
+        const cropRecommendations = {
+            rice: [
+                { herbicide: 'Butachlor', timing: 'Pre-emergence', rate: '1.5 kg/ha', weeds: 'Grasses, sedges' },
+                { herbicide: 'Pendimethalin', timing: '3 DAS', rate: '1.0 kg/ha', weeds: 'Annual grasses' },
+                { herbicide: '2,4-D', timing: '20-25 DAT', rate: '0.75 kg/ha', weeds: 'Broadleaf weeds' },
+                { herbicide: 'Glyphosate', timing: 'Directed spray', rate: '2.0 kg/ha', weeds: 'All weeds' }
+            ],
+            wheat: [
+                { herbicide: 'Pendimethalin', timing: 'Pre-emergence', rate: '1.0 kg/ha', weeds: 'Grasses' },
+                { herbicide: '2,4-D', timing: '30-35 DAS', rate: '0.5 kg/ha', weeds: 'Broadleaf weeds' },
+                { herbicide: 'Clodinafop', timing: '35-40 DAS', rate: '0.06 kg/ha', weeds: 'Phalaris minor' }
+            ],
+            maize: [
+                { herbicide: 'Atrazine', timing: 'Pre-emergence', rate: '1.5 kg/ha', weeds: 'Broadleaf weeds' },
+                { herbicide: 'Pendimethalin', timing: 'Pre-emergence', rate: '1.0 kg/ha', weeds: 'Grasses' },
+                { herbicide: '2,4-D', timing: '25-30 DAS', rate: '1.0 kg/ha', weeds: 'Broadleaf weeds' },
+                { herbicide: 'Glyphosate', timing: 'Directed spray', rate: '1.5 kg/ha', weeds: 'All weeds' }
+            ],
+            cotton: [
+                { herbicide: 'Pendimethalin', timing: 'Pre-emergence', rate: '1.0 kg/ha', weeds: 'Annual weeds' },
+                { herbicide: 'Glyphosate', timing: '20-25 DAS', rate: '1.5 kg/ha', weeds: 'All weeds' },
+                { herbicide: 'Paraquat', timing: 'Directed spray', rate: '0.8 kg/ha', weeds: 'Emerged weeds' }
+            ],
+            sugarcane: [
+                { herbicide: 'Atrazine', timing: 'Pre-emergence', rate: '2.0 kg/ha', weeds: 'Broadleaf weeds' },
+                { herbicide: 'Pendimethalin', timing: 'Pre-emergence', rate: '1.5 kg/ha', weeds: 'Grasses' },
+                { herbicide: 'Glyphosate', timing: 'Directed spray', rate: '2.5 kg/ha', weeds: 'All weeds' }
+            ],
+            soybean: [
+                { herbicide: 'Pendimethalin', timing: 'Pre-emergence', rate: '1.0 kg/ha', weeds: 'Annual weeds' },
+                { herbicide: 'Glyphosate', timing: '15-20 DAS', rate: '1.5 kg/ha', weeds: 'All weeds' },
+                { herbicide: 'Paraquat', timing: 'Directed spray', rate: '0.6 kg/ha', weeds: 'Emerged weeds' }
+            ],
+            greengram: [
+                { herbicide: 'Pendimethalin', timing: 'Pre-emergence', rate: '1.0 kg/ha', weeds: 'Annual weeds' },
+                { herbicide: 'Imazethapyr', timing: '15-20 DAS', rate: '0.1 kg/ha', weeds: 'Broadleaf & grasses' },
+                { herbicide: 'Quizalofop-ethyl', timing: '20-25 DAS', rate: '0.05 kg/ha', weeds: 'Grassy weeds' },
+                { herbicide: 'Oxyfluorfen', timing: 'Pre-emergence', rate: '0.2 kg/ha', weeds: 'Broadleaf weeds' }
+            ],
+            blackgram: [
+                { herbicide: 'Pendimethalin', timing: 'Pre-emergence', rate: '1.0 kg/ha', weeds: 'Annual weeds' },
+                { herbicide: 'Imazethapyr', timing: '15-20 DAS', rate: '0.1 kg/ha', weeds: 'Broadleaf & grasses' },
+                { herbicide: 'Fluazifop-p-butyl', timing: '20-25 DAS', rate: '0.25 kg/ha', weeds: 'Grassy weeds' },
+                { herbicide: 'Chlorimuron-ethyl', timing: '20-25 DAS', rate: '0.009 kg/ha', weeds: 'Broadleaf weeds' }
+            ],
+            redgram: [
+                { herbicide: 'Pendimethalin', timing: 'Pre-emergence', rate: '1.0 kg/ha', weeds: 'Annual weeds' },
+                { herbicide: 'Imazethapyr', timing: '20-25 DAS', rate: '0.075 kg/ha', weeds: 'Broadleaf & grasses' },
+                { herbicide: 'Quizalofop-ethyl', timing: '25-30 DAS', rate: '0.05 kg/ha', weeds: 'Grassy weeds' },
+                { herbicide: 'Oxyfluorfen', timing: 'Pre-emergence', rate: '0.15 kg/ha', weeds: 'Broadleaf weeds' }
+            ],
+            chickpea: [
+                { herbicide: 'Pendimethalin', timing: 'Pre-emergence', rate: '1.0 kg/ha', weeds: 'Annual weeds' },
+                { herbicide: 'Metribuzin', timing: 'Pre-emergence', rate: '0.35 kg/ha', weeds: 'Broadleaf weeds' },
+                { herbicide: 'Imazethapyr', timing: '20-25 DAS', rate: '0.075 kg/ha', weeds: 'Mixed weeds' },
+                { herbicide: 'Quizalofop-ethyl', timing: '25-30 DAS', rate: '0.05 kg/ha', weeds: 'Grassy weeds' }
+            ],
+            lentil: [
+                { herbicide: 'Pendimethalin', timing: 'Pre-emergence', rate: '1.0 kg/ha', weeds: 'Annual weeds' },
+                { herbicide: 'Metribuzin', timing: 'Pre-emergence', rate: '0.5 kg/ha', weeds: 'Broadleaf weeds' },
+                { herbicide: 'Fluazifop-p-butyl', timing: '20-25 DAS', rate: '0.15 kg/ha', weeds: 'Grassy weeds' },
+                { herbicide: 'Clodinafop-propargyl', timing: '25-30 DAS', rate: '0.06 kg/ha', weeds: 'Grass weeds' }
+            ],
+            fieldpea: [
+                { herbicide: 'Pendimethalin', timing: 'Pre-emergence', rate: '1.0 kg/ha', weeds: 'Annual weeds' },
+                { herbicide: 'Metribuzin', timing: 'Pre-emergence', rate: '0.35 kg/ha', weeds: 'Broadleaf weeds' },
+                { herbicide: 'Quizalofop-ethyl', timing: '20-25 DAS', rate: '0.05 kg/ha', weeds: 'Grassy weeds' },
+                { herbicide: 'Imazethapyr', timing: '15-20 DAS', rate: '0.075 kg/ha', weeds: 'Mixed weeds' }
+            ]
+        };
+
+        // Calculator functions
+        function calculateHerbicideAmount() {
+            const rate = parseFloat(document.getElementById('rateApplication').value);
+            const active = parseFloat(document.getElementById('activeIngredient').value);
+            
+            if (rate && active) {
+                const amount = (rate * 100) / active;
+                document.getElementById('herbicideResult').style.display = 'block';
+                document.getElementById('herbicideResult').innerHTML = `Amount of Herbicide: <strong>${amount.toFixed(2)} kg/ha</strong>`;
+            }
+        }
+
+        function calculateSprayArea() {
+            const volume = parseFloat(document.getElementById('sprayVolume').value);
+            const recommended = parseFloat(document.getElementById('recommendedVolume').value);
+            
+            if (volume && recommended) {
+                const area = (volume * 10000) / recommended;
+                document.getElementById('areaResult').style.display = 'block';
+                document.getElementById('areaResult').innerHTML = `Coverage Area: <strong>${area.toFixed(0)} m²</strong>`;
+            }
+        }
+
+        function calculateKnapsacCount() {
+            const volume = parseFloat(document.getElementById('recSprayVol').value);
+            const capacity = parseFloat(document.getElementById('tankCapacity').value);
+            
+            if (volume && capacity) {
+                const count = volume / capacity;
+                document.getElementById('knapsacResult').style.display = 'block';
+                document.getElementById('knapsacResult').innerHTML = `Number of Knapsac: <strong>${count.toFixed(0)} sprayers/ha</strong>`;
+            }
+        }
+
+        function calculateKnapsacHerbicide() {
+            const amount = parseFloat(document.getElementById('herbAmountKg').value);
+            const count = parseFloat(document.getElementById('numKnapsac').value);
+            
+            if (amount && count) {
+                const herbicide = (amount * 1000) / count;
+                document.getElementById('knapsacHerbResult').style.display = 'block';
+                document.getElementById('knapsacHerbResult').innerHTML = `Herbicide per Knapsac: <strong>${herbicide.toFixed(1)} g</strong>`;
+            }
+        }
+
+        // Tab functionality
+        function showTab(tabName) {
+            // Hide all tab contents
+            const contents = document.querySelectorAll('.tab-content');
+            contents.forEach(content => content.classList.remove('active'));
+            
+            // Remove active class from all tabs
+            const tabs = document.querySelectorAll('.tab');
+            tabs.forEach(tab => tab.classList.remove('active'));
+            
+            // Show selected tab content
+            document.getElementById(tabName).classList.add('active');
+            
+            // Add active class to clicked tab
+            event.target.classList.add('active');
+            
+            // Initialize charts if analytics tab is selected
+            if (tabName === 'analytics') {
+                setTimeout(initCharts, 100);
+            }
+        }
+
+        // Show crop recommendations
+        function showCropRecommendations(crop) {
+            // Update button states
+            const buttons = document.querySelectorAll('.crop-btn');
+            buttons.forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+            
+            const recommendations = cropRecommendations[crop];
+            let html = `<h3>Recommended Herbicides for ${crop.charAt(0).toUpperCase() + crop.slice(1)}</h3>`;
+            
+            recommendations.forEach(rec => {
+                html += `
+                    <div class="herbicide-card">
+                        <h4>${rec.herbicide}</h4>
+                        <p><strong>Timing:</strong> ${rec.timing}</p>
+                        <p><strong>Rate:</strong> ${rec.rate}</p>
+                        <p><strong>Target Weeds:</strong> ${rec.weeds}</p>
+                        <div class="site-action">
+                            <strong>Site of Action:</strong> ${herbicideDatabase[rec.herbicide]?.siteOfAction || 'Data not available'}
+                        </div>
+                    </div>
+                `;
+            });
+            
+            document.getElementById('cropRecommendations').innerHTML = html;
+        }
+
+        // Initialize herbicide database display
+        function initHerbicideDatabase() {
+            let html = '<div class="herbicide-grid">';
+            
+            Object.entries(herbicideDatabase).forEach(([name, data]) => {
+                html += `
+                    <div class="herbicide-card">
+                        <h3>${name}</h3>
+                        <div class="site-action">
+                            <strong>Site of Action:</strong> ${data.siteOfAction}
+                        </div>
+                        <p><strong>Mechanism:</strong> ${data.mechanism}</p>
+                        <p><strong>Crops:</strong> ${data.crops.join(', ')}</p>
+                        <p><strong>Application Rate:</strong> ${data.rate}</p>
+                        <p><strong>Resistance Risk:</strong> <span style="color: ${data.resistance === 'High' ? '#e74c3c' : data.resistance === 'Medium' ? '#f39c12' : '#27ae60'}">${data.resistance}</span></p>
+                        <p><strong>Timing:</strong> ${data.timing}</p>
+                    </div>
+                `;
+            });
+            
+            html += '</div>';
+            document.getElementById('herbicideDatabase').innerHTML = html;
+        }
+
+        // Initialize charts
+        function initCharts() {
+            // MOA Distribution Chart
+            const moaCtx = document.getElementById('moaChart').getContext('2d');
+            new Chart(moaCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Group 9 (EPSPS)', 'Group 4 (Auxin)', 'Group 5 (PSII)', 'Group 3 (Cell Division)', 'Group 22 (PSI)', 'Group 15 (Fatty Acid)'],
+                    datasets: [{
+                        data: [25, 20, 18, 15, 12, 10],
+                        backgroundColor: [
+                            '#667eea', '#764ba2', '#f093fb', '#f5576c', '#4facfe', '#00f2fe'
+                        ]
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            position: 'bottom'
+                        }
+                    }
+                }
+            });
+
+            // Resistance Chart
+            const resistanceCtx = document.getElementById('resistanceChart').getContext('2d');
+            new Chart(resistanceCtx, {
+                type: 'bar',
+                data: {
+                    labels: ['Glyphosate', 'Atrazine', '2,4-D', 'Paraquat', 'Pendimethalin', 'Butachlor'],
+                    datasets: [{
+                        label: 'Resistant Weed Species',
+                        data: [48, 35, 15, 8, 3, 2],
+                        backgroundColor: ['#e74c3c', '#e74c3c', '#f39c12', '#f39c12', '#27ae60', '#27ae60']
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+
+            // Optimization Chart
+            const optimizationCtx = document.getElementById('optimizationChart').getContext('2d');
+            new Chart(optimizationCtx, {
+                type: 'line',
+                data: {
+                    labels: ['0.5x', '0.75x', '1x', '1.25x', '1.5x', '2x'],
+                    datasets: [{
+                        label: 'Efficacy (%)',
+                        data: [45, 70, 95, 98, 99, 99],
+                        borderColor: '#667eea',
+                        backgroundColor: 'rgba(102, 126, 234, 0.1)',
+                        tension: 0.4,
+                        fill: true
+                    }, {
+                        label: 'Cost Efficiency',
+                        data: [90, 95, 100, 85, 70, 50],
+                        borderColor: '#f5576c',
+                        backgroundColor: 'rgba(245, 87, 108, 0.1)',
+                        tension: 0.4,
+                        fill: true
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            max: 100
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            position: 'top'
+                        }
+                    }
+                }
+            });
+        }
+
+        // Machine Learning Predictions
+        function predictOptimalRate(crop, weedPressure, soilType) {
+            // Simple ML model simulation
+            const baseRates = {
+                'rice': 1.5,
+                'wheat': 1.0,
+                'maize': 1.8,
+                'cotton': 1.2,
+                'sugarcane': 2.0,
+                'soybean': 1.0
+            };
+
+            const weedFactors = {
+                'low': 0.8,
+                'medium': 1.0,
+                'high': 1.3
+            };
+
+            const soilFactors = {
+                'sandy': 0.9,
+                'loamy': 1.0,
+                'clay': 1.1
+            };
+
+            const baseRate = baseRates[crop] || 1.0;
+            const weedFactor = weedFactors[weedPressure] || 1.0;
+            const soilFactor = soilFactors[soilType] || 1.0;
+
+            return (baseRate * weedFactor * soilFactor).toFixed(2);
+        }
+
+        // Resistance management recommendations
+        function getResistanceManagement(herbicide) {
+            const recommendations = {
+                'Glyphosate': [
+                    'Rotate with different modes of action',
+                    'Use tank mixtures with residual herbicides',
+                    'Implement cover crops',
+                    'Practice diverse crop rotation'
+                ],
+                'Atrazine': [
+                    'Rotate with Group 4 herbicides',
+                    'Use pre-emergence mixtures',
+                    'Implement cultural practices',
+                    'Monitor for resistance annually'
+                ],
+                '2,4-D': [
+                    'Tank mix with Group 9 herbicides',
+                    'Use proper timing and rates',
+                    'Implement mechanical control',
+                    'Practice crop rotation'
+                ]
+            };
+            
+            return recommendations[herbicide] || ['Follow integrated weed management practices'];
+        }
+
+        // Advanced calculator with environmental factors
+        function calculateOptimalApplication() {
+            const temperature = parseFloat(document.getElementById('temperature')?.value) || 25;
+            const humidity = parseFloat(document.getElementById('humidity')?.value) || 60;
+            const windSpeed = parseFloat(document.getElementById('windSpeed')?.value) || 5;
+            
+            let recommendation = 'Optimal conditions for application';
+            
+            if (temperature > 30) recommendation = 'High temperature - consider early morning application';
+            if (humidity < 50) recommendation = 'Low humidity - increase water volume';
+            if (windSpeed > 10) recommendation = 'High wind - postpone application';
+            
+            return recommendation;
+        }
+
+        // Data export functionality
+        function exportCalculations() {
+            const data = {
+                timestamp: new Date().toISOString(),
+                calculations: {
+                    herbicideAmount: document.getElementById('herbicideResult')?.textContent || '',
+                    sprayArea: document.getElementById('areaResult')?.textContent || '',
+                    knapsacCount: document.getElementById('knapsacResult')?.textContent || '',
+                    herbicidePerKnapsac: document.getElementById('knapsacHerbResult')?.textContent || ''
+                }
+            };
+            
+            const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'herbicide_calculations.json';
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+
+        // Initialize the application
+        document.addEventListener('DOMContentLoaded', function() {
+            initHerbicideDatabase();
+            showCropRecommendations('rice');
+            
+            // Add advanced features section
+            const analyticsTab = document.getElementById('analytics');
+            const advancedSection = document.createElement('div');
+            advancedSection.innerHTML = `
+                <div style="margin-top: 30px; padding: 20px; background: rgba(255,255,255,0.9); border-radius: 15px;">
+                    <h3>🎯 Precision Application Calculator</h3>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin: 20px 0;">
+                        <div class="input-group">
+                            <label>Temperature (°C):</label>
+                            <input type="number" id="temperature" value="25" min="0" max="50">
+                        </div>
+                        <div class="input-group">
+                            <label>Humidity (%):</label>
+                            <input type="number" id="humidity" value="60" min="0" max="100">
+                        </div>
+                        <div class="input-group">
+                            <label>Wind Speed (km/h):</label>
+                            <input type="number" id="windSpeed" value="5" min="0" max="30">
+                        </div>
+                        <div class="input-group">
+                            <label>Crop Type:</label>
+                            <select id="cropType">
+                                <option value="rice">Rice</option>
+                                <option value="wheat">Wheat</option>
+                                <option value="maize">Maize</option>
+                                <option value="cotton">Cotton</option>
+                                <option value="sugarcane">Sugarcane</option>
+                                <option value="soybean">Soybean</option>
+                                <option value="greengram">Green Gram</option>
+                                <option value="blackgram">Black Gram</option>
+                                <option value="redgram">Red Gram</option>
+                                <option value="chickpea">Chickpea</option>
+                                <option value="lentil">Lentil</option>
+                                <option value="fieldpea">Field Pea</option>
+                            </select>
+                        </div>
+                    </div>
+                    <button class="btn" onclick="generateAdvancedRecommendation()">Generate Smart Recommendation</button>
+                    <div id="advancedResult" style="margin-top: 15px;"></div>
+                    
+                    <div style="margin-top: 30px;">
+                        <h3>📊 Export & Save</h3>
+                        <button class="btn" onclick="exportCalculations()" style="margin-right: 10px;">Export Calculations</button>
+                        <button class="btn" onclick="generateReport()" style="background: linear-gradient(45deg, #2ecc71, #27ae60);">Generate Report</button>
+                    </div>
+                </div>
+            `;
+            analyticsTab.appendChild(advancedSection);
+        });
+
+        // Generate advanced recommendation
+        function generateAdvancedRecommendation() {
+            const temp = parseFloat(document.getElementById('temperature').value);
+            const humidity = parseFloat(document.getElementById('humidity').value);
+            const wind = parseFloat(document.getElementById('windSpeed').value);
+            const crop = document.getElementById('cropType').value;
+            
+            let recommendation = `<div style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); color: white; padding: 20px; border-radius: 15px;">`;
+            recommendation += `<h4>🎯 Smart Recommendation for ${crop.charAt(0).toUpperCase() + crop.slice(1)}</h4>`;
+            
+            // Environmental conditions
+            if (temp >= 15 && temp <= 25 && humidity >= 50 && wind <= 10) {
+                recommendation += `<p>✅ <strong>Excellent conditions</strong> for herbicide application</p>`;
+            } else if (temp > 30) {
+                recommendation += `<p>⚠️ <strong>High temperature warning:</strong> Apply early morning (6-8 AM) to reduce volatilization</p>`;
+            } else if (humidity < 40) {
+                recommendation += `<p>⚠️ <strong>Low humidity:</strong> Increase spray volume by 20% and add adjuvant</p>`;
+            } else if (wind > 15) {
+                recommendation += `<p>🚫 <strong>High wind warning:</strong> Postpone application to avoid drift</p>`;
+            }
+            
+            // ML-based rate prediction
+            const optimalRate = predictOptimalRate(crop, 'medium', 'loamy');
+            recommendation += `<p>🧠 <strong>AI Predicted Rate:</strong> ${optimalRate} kg/ha</p>`;
+            
+            // Resistance management
+            const mainHerbicide = cropRecommendations[crop][0].herbicide;
+            const resistanceTips = getResistanceManagement(mainHerbicide);
+            recommendation += `<p>🛡️ <strong>Resistance Management:</strong></p><ul>`;
+            resistanceTips.slice(0, 2).forEach(tip => {
+                recommendation += `<li>${tip}</li>`;
+            });
+            recommendation += `</ul>`;
+            
+            recommendation += `</div>`;
+            
+            document.getElementById('advancedResult').innerHTML = recommendation;
+        }
+
+        // Generate comprehensive report
+        function generateReport() {
+            const reportContent = `
+# Herbicide Application Report
+**Generated:** ${new Date().toLocaleDateString()}
+
+## Environmental Conditions
+- Temperature: ${document.getElementById('temperature')?.value || 'N/A'}°C
+- Humidity: ${document.getElementById('humidity')?.value || 'N/A'}%
+- Wind Speed: ${document.getElementById('windSpeed')?.value || 'N/A'} km/h
+
+## Calculations Summary
+${document.getElementById('herbicideResult')?.textContent || 'No herbicide calculations performed'}
+${document.getElementById('areaResult')?.textContent || 'No area calculations performed'}
+${document.getElementById('knapsacResult')?.textContent || 'No knapsac calculations performed'}
+
+## Recommendations
+- Follow integrated weed management practices
+- Monitor for herbicide resistance
+- Maintain proper application timing
+- Use appropriate personal protective equipment
+
+---
+*Report generated by Advanced Herbicide Calculator & Management System*
+            `;
+            
+            const blob = new Blob([reportContent], { type: 'text/markdown' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'herbicide_report.md';
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+    </script>
+</body>
+</html>
